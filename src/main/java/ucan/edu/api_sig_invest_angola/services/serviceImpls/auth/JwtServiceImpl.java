@@ -35,7 +35,6 @@ public class JwtServiceImpl implements JwtService {
             throw new IllegalArgumentException("Palavra chave nao foi recuperada");
         }
         byte[] keyBytes = Decoders.BASE64.decode(secretKeyString);
-        //secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
         secretKey = Keys.hmacShaKeyFor(keyBytes);
         log.info("Palavra chave JWT inicializada");
     }

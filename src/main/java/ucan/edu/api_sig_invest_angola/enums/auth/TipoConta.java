@@ -22,14 +22,12 @@ public enum TipoConta {
         return name();
     }
     public static TipoConta forDescricao(String descricao) {
-        System.out.println("Descricao: " + descricao);
         for (TipoConta tipo : TipoConta.values()) {
-            System.out.println("Tipo: " + tipo.getDescricaoTipoConta());
             if (tipo.getDescricaoTipoConta().equalsIgnoreCase(descricao)) {
                 return tipo;
             }
         }
-        return null;
+        throw new PortalBusinessException("Tipo de conta inválido: " + descricao);
     }
 
     @JsonCreator

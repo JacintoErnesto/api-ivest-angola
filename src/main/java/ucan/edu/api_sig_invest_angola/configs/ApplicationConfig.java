@@ -17,7 +17,7 @@ import ucan.edu.api_sig_invest_angola.repositories.AuthRepository;
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
-    //private final AuthService authService;
+
     private final AuthRepository authRepository;
     @Bean
     public UserDetailsService userDetailsService(){
