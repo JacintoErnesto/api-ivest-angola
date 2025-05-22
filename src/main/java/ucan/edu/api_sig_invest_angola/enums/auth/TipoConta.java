@@ -27,7 +27,7 @@ public enum TipoConta {
                 return tipo;
             }
         }
-        throw new PortalBusinessException("Tipo de conta inválido: " + descricao);
+       return null;
     }
 
     @JsonCreator

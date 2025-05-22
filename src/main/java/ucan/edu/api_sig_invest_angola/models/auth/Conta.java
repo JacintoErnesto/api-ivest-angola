@@ -2,6 +2,7 @@ package ucan.edu.api_sig_invest_angola.models.auth;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ucan.edu.api_sig_invest_angola.enums.auth.TipoConta;
+import ucan.edu.api_sig_invest_angola.models.empreendedor.Empreendedor;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -27,17 +29,25 @@ public class Conta  implements UserDetails {
     private Long id;
 
     @Column(name = "email")
+    @NotNull(message = "Email não pode ser nulo")
     private String username;
-
     @Column(name = "password")
+    @NotNull(message = "Password não pode ser nulo")
     private String password;
-
     @Column(name = "tipo_conta")
+    @NotNull(message = "Tipo de conta não pode ser nulo")
     @Enumerated(EnumType.STRING)
     private TipoConta tipoConta;
 
+    @Column(name = "perfil_completo")
+    private boolean perfilCompleto;
+
+    @OneToOne(mappedBy = "conta", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Empreendedor empreendedor;
+
     @Column(name = "data_registo")
     private LocalDateTime dataRegisto;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ucan.edu.api_sig_invest_angola.repositories.AuthRepository;
+import ucan.edu.api_sig_invest_angola.repositories.auth.AuthRepository;
 
 @Configuration
 @RequiredArgsConstructor

@@ -11,5 +11,6 @@ public record AutenticatioRequestDTO(
         String username,
         @NotBlank(message = "O campo password é obrigatório")
         @Size(min = 10, max = 30, message = "O campo password deve ter entre 10 e 30 caracteres")
-        String password) {
+        String password
+        ) {
 }

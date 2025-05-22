@@ -3,6 +3,7 @@ package ucan.edu.api_sig_invest_angola.configs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,6 +12,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -34,7 +37,10 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ADMINISTRADOR")
+                        .requestMatchers("/admin/criar-conta","/admin/login",
+                        "/admin/criar-conta","/suporte-negocio/**").hasAuthority("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/suporte-negocio/**").hasAuthority("ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT,"/empreendedor/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

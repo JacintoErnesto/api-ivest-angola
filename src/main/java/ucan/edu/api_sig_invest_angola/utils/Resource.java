@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import ucan.edu.api_sig_invest_angola.dtos.auth.AuthrReturnDTO;
+import ucan.edu.api_sig_invest_angola.dtos.auth.AuthContaReturnDTO;
+import ucan.edu.api_sig_invest_angola.dtos.auth.AuthReturnDTO;
 import ucan.edu.api_sig_invest_angola.dtos.response.PaginatorDTO;
 import ucan.edu.api_sig_invest_angola.dtos.response.RestDataReturnDTO;
 import ucan.edu.api_sig_invest_angola.dtos.response.RestMessageReturnDTO;
@@ -42,16 +43,15 @@ public class Resource extends RuntimeException {
         super(message, cause);
     }
 
-    public ResponseEntity<AuthrReturnDTO> okAuthRequestOne(Object object, String message, Object... params) {
+    public ResponseEntity<AuthReturnDTO> okAuthRequestOne(Object object, String message, Object... params) {
         String msg = MessageUtils.getMessage("sucesso");
         if (object != null) {
-            AuthrReturnDTO rest = new AuthrReturnDTO(object, 1, ResponseCode.SUCESSO.getDescricao(), msg);
+            AuthReturnDTO rest = new AuthReturnDTO(object, 1, ResponseCode.SUCESSO.getDescricao(), msg);
             return new ResponseEntity<>(rest, HttpStatus.OK);
         }
-        AuthrReturnDTO rest = new AuthrReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage(message, params));
+        AuthReturnDTO rest = new AuthReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage(message, params));
         return new ResponseEntity<>(rest, HttpStatus.OK);
     }
-
     public ResponseEntity<RestDataReturnDTO> okRequestOne(Object object, String message, Object... params) {
         String msg = MessageUtils.getMessage("sucesso");
         if (object != null) {
@@ -60,6 +60,30 @@ public class Resource extends RuntimeException {
         }
         RestDataReturnDTO rest = new RestDataReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage(message, params));
         return new ResponseEntity<>(rest, HttpStatus.OK);
+    }
+
+    //RETORNO ADAPTADO PARA SUPORTAR E LEVAR AO RADIS O RECURSO CONSUMIDO.
+    public ResponseEntity<RestDataReturnDTO> okRequestOneCaching(Object object, String message, Object... params) {
+        String msg = MessageUtils.getMessage("sucesso");
+        if(object!= null) {
+            RestDataReturnDTO rest = new RestDataReturnDTO(object, 1, ResponseCode.SUCESSO.getDescricao(), msg);
+            return new ResponseEntity<>(rest, HttpStatus.OK);
+
+        }
+        RestDataReturnDTO rest = new RestDataReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage(message,params));
+        return new ResponseEntity<>(rest, HttpStatus.OK);
+    }
+
+    //RETORNO ADAPTADO PARA SUPORTAR E LEVAR AO RADIS O RECURSO CONSUMIDO.
+    public RestDataReturnDTO okRequestCaching(Object object) {
+        String msg = MessageUtils.getMessage("sucesso");
+
+        if(object!= null) {
+            RestDataReturnDTO rest = new RestDataReturnDTO(object, ResponseCode.SUCESSO.getDescricao(), msg);
+            return rest;
+        }
+        RestDataReturnDTO rest = new RestDataReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage("sem.nada.no.retorno"));
+        return rest;
     }
 
     public ResponseEntity<RestDataReturnDTO> okRequestOneMensage(Object object, String message, Object... params) {
@@ -83,8 +107,14 @@ public class Resource extends RuntimeException {
         return new ResponseEntity<>(rest, HttpStatus.OK);
     }
 
-    public ResponseEntity<RestDataReturnDTO> notFoundRequest(String msgCode) {
+    public ResponseEntity<RestDataReturnDTO> notFoundRequest(String msgCode, Object object) {
         RestDataReturnDTO rest = new RestDataReturnDTO(null, 0,
+                ResponseCode.NENHUM_RESGISTRO.getDescricao(), msgCode);
+        return new ResponseEntity<>(rest, HttpStatus.OK);
+    }
+
+    public ResponseEntity<AuthReturnDTO> notFoundAuthRequest(String msgCode, Object object) {
+        AuthReturnDTO rest = new AuthReturnDTO(null, 0,
                 ResponseCode.NENHUM_RESGISTRO.getDescricao(), msgCode);
         return new ResponseEntity<>(rest, HttpStatus.OK);
     }
@@ -113,7 +143,7 @@ public class Resource extends RuntimeException {
         return new ResponseEntity<>(rest, HttpStatus.OK);
     }
 
-    public ResponseEntity<RestDataReturnDTO> okRequestPaginado(Page<Object> pageObject) {
+    public ResponseEntity<RestDataReturnDTO> okRequestGenericPaginado(Page<Object> pageObject) {
         String msg = MessageUtils.getMessage("sucesso");
         pageObject.getContent();
         if (pageObject.getTotalElements() > 0) {
@@ -125,6 +155,43 @@ public class Resource extends RuntimeException {
         RestDataReturnDTO rest = new RestDataReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage("sem.nada.no.retorno"));
         return new ResponseEntity<>(rest, HttpStatus.OK);
     }
+    public <T> ResponseEntity<RestDataReturnDTO> okRequestPaginado(Page<T> pageObject) {
+        String msg = MessageUtils.getMessage("sucesso");
+
+        if (pageObject.getTotalElements() > 0) {
+            RestDataReturnDTO rest = new RestDataReturnDTO(
+                    pageObject.getContent(),
+                    ResponseCode.SUCESSO.getDescricao(),
+                    msg
+            );
+            rest.setQuantidadeTotalItens(pageObject.getContent().size());
+            rest.setPaginator(new PaginatorDTO(
+                    pageObject.getNumber(),
+                    pageObject.getTotalElements(),
+                    pageObject.getTotalPages()
+            ));
+            return new ResponseEntity<>(rest, HttpStatus.OK);
+        }
+
+        RestDataReturnDTO rest = new RestDataReturnDTO(
+                ResponseCode.NENHUM_RESGISTRO.getDescricao(),
+                MessageUtils.getMessage("sem.nada.no.retorno")
+        );
+        return new ResponseEntity<>(rest, HttpStatus.OK);
+    }
+    public ResponseEntity<RestDataReturnDTO> okRequestAuthPaginado(Page<AuthContaReturnDTO> pageObject) {
+        String msg = MessageUtils.getMessage("sucesso");
+        pageObject.getContent();
+        if (pageObject.getTotalElements() > 0) {
+            RestDataReturnDTO rest = new RestDataReturnDTO(pageObject.getContent(), ResponseCode.SUCESSO.getDescricao(), msg);
+            rest.setQuantidadeTotalItens(pageObject.getContent().size());
+            rest.setPaginator(new PaginatorDTO(pageObject.getNumber(), pageObject.getTotalElements(), pageObject.getTotalPages()));
+            return new ResponseEntity<>(rest, HttpStatus.OK);
+        }
+        RestDataReturnDTO rest = new RestDataReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage("sem.nada.no.retorno"));
+        return new ResponseEntity<>(rest, HttpStatus.OK);
+    }
+
 
     private boolean preencheBusinessException(Exception exception, RestDataReturnDTO objectDataReturnDTO) {
         RestMessageReturnDTO messageReturnDTO;
@@ -139,7 +206,7 @@ public class Resource extends RuntimeException {
         return false;
     }
 
-    private boolean preencheAuthBusinessException(Exception exception, AuthrReturnDTO objectDataReturnDTO) {
+    private boolean preencheAuthBusinessException(Exception exception, AuthReturnDTO objectDataReturnDTO) {
         RestMessageReturnDTO messageReturnDTO;
         if (exception instanceof PortalBusinessException businessException) {
 
@@ -174,8 +241,8 @@ public class Resource extends RuntimeException {
         return new ResponseEntity<>(objectDataReturnDTO, HttpStatus.OK);
     }
 
-    public ResponseEntity<AuthrReturnDTO> badAuthRequest(String messageKey, Object[] params, Exception exception) {
-        AuthrReturnDTO objectDataReturnDTO = new AuthrReturnDTO();
+    public ResponseEntity<AuthReturnDTO> badAuthRequest(String messageKey, Object[] params, Exception exception) {
+        AuthReturnDTO objectDataReturnDTO = new AuthReturnDTO();
         RestMessageReturnDTO messageReturnDTO = null;
         String msg = null;
 
@@ -207,5 +274,14 @@ public class Resource extends RuntimeException {
     public Class getClassName() {
         Class<?> enclosingClass = getClass().getEnclosingClass();
         return Objects.requireNonNullElseGet(enclosingClass, this::getClass);
+    }
+
+    public ResponseEntity<RestDataReturnDTO> okRequest(Object object,int totalElements, String msgCode) {
+        if (object != null) {
+            RestDataReturnDTO rest = new RestDataReturnDTO(object, totalElements, ResponseCode.SUCESSO.getDescricao(), msgCode);
+            return new ResponseEntity<>(rest, HttpStatus.OK);
+        }
+        RestDataReturnDTO rest = new RestDataReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage("sem.nada.no.retorno"));
+        return new ResponseEntity<>(rest, HttpStatus.OK);
     }
 }

@@ -103,7 +103,7 @@ public class ErroDeValidacaoHandler extends Resource {
     }
     @ExceptionHandler(value = PortalBusinessTokenRejectException.class)
     public ResponseEntity<RestDataReturnDTO> badTokenRequestException(PortalBusinessTokenRejectException exception) {
-        return super.businesRuleRequestToken(exception.getMessage());
+        return businesRuleRequestToken(exception.getMessage());
     }
 
 }

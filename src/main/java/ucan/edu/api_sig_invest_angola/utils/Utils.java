@@ -8,6 +8,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import ucan.edu.api_sig_invest_angola.dtos.localidade.LocalidadeReturnDTO;
+import ucan.edu.api_sig_invest_angola.models.localidade.Localidade;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -597,6 +599,26 @@ public final class Utils {
     }
 
 
+    public static <T> T convertToDTO(Object objectEntity, Class<T> targetClass) {
+        if (objectEntity == null) {
+            return null;
+        }
+        try {
+            T objectDTO = targetClass.getDeclaredConstructor().newInstance();
+            Utils.copyObjecto(objectEntity, objectDTO);
+            return objectDTO;
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao converter objeto para DTO", e);
+        }
+    }
+
+
+
+    public static Object convertToEntity(Object objectDTO) {
+        Object objectEntity = new Object();
+        Utils.copyObjecto(objectDTO ,objectEntity);
+        return objectEntity;
+    }
 
 
 

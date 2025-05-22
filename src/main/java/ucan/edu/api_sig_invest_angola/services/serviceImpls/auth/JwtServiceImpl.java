@@ -1,16 +1,19 @@
 package ucan.edu.api_sig_invest_angola.services.serviceImpls.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import ucan.edu.api_sig_invest_angola.exceptions.PortalBusinessException;
+import ucan.edu.api_sig_invest_angola.exceptions.PortalBusinessTokenRejectException;
 import ucan.edu.api_sig_invest_angola.services.auth.JwtService;
+import ucan.edu.api_sig_invest_angola.utils.UtilsMessages.MessageUtils;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -20,7 +23,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 public class JwtServiceImpl implements JwtService {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtServiceImpl.class);
     @Value("${jwt.secret}")
     private String secretKeyString;
 
@@ -55,22 +58,23 @@ public class JwtServiceImpl implements JwtService {
 
 
     private Claims extrairAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+            return Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
     }
+
 
     private boolean isTokenExpirado(String token) {
         return extrairExpiration(token).before(new Date());
     }
 
-    public String gerarToken(Map<String, Object> claims,UserDetails userDetails) {
+    public String gerarToken(Map<String, Object> claims, UserDetails userDetails) {
         return gerarandoToken(claims, userDetails);
     }
 
-    private String gerarandoToken(Map<String, Object> extractClams,UserDetails userDetails) {
+    private String gerarandoToken(Map<String, Object> extractClams, UserDetails userDetails) {
         Date agora = new Date(System.currentTimeMillis());
         Date expiracao = new Date(agora.getTime() + jwtExpirationMs);
 

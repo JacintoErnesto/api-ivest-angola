@@ -62,4 +62,11 @@ public class SwaggerConfig {
                 .pathsToMatch("/suporte-negocio/**")
                 .build();
     }
+    @Bean
+    public GroupedOpenApi EnderecoGroup() {
+        return GroupedOpenApi.builder()
+                .group("Endereco")
+                .pathsToMatch("/endereco/**")
+                .build();
+    }
 }

@@ -1,5 +1,6 @@
 package ucan.edu.api_sig_invest_angola.configs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ucan.edu.api_sig_invest_angola.dtos.response.RestDataReturnDTO;
+import ucan.edu.api_sig_invest_angola.enums.response.ResponseCode;
 import ucan.edu.api_sig_invest_angola.exceptions.PortalBusinessTokenRejectException;
 import ucan.edu.api_sig_invest_angola.services.auth.JwtService;
 import ucan.edu.api_sig_invest_angola.utils.UtilsMessages.MessageUtils;
@@ -32,10 +35,14 @@ public class JwtAutenticationFilterConfig extends OncePerRequestFilter {
             @NotNull HttpServletResponse response,
             @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
+        try {
+
+
 
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
+
             String tokenJwt = authHeader.substring(7);
 
             if (!tokenJwt.isBlank()) {
@@ -63,8 +70,20 @@ public class JwtAutenticationFilterConfig extends OncePerRequestFilter {
                 throw new PortalBusinessTokenRejectException("Token JWT está vazio.");
             }
         }
+            filterChain.doFilter(request, response);
 
-        // ✅ Deixar passar a requisição, autenticada ou não
-        filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            ObjectMapper mapper = new ObjectMapper();
+            RestDataReturnDTO rest = new RestDataReturnDTO(
+                    null, 0, ResponseCode.TOKEN_REJECT.getDescricao(),
+                    MessageUtils.getMessage("token.expirou")
+            );
+            String json = mapper.writeValueAsString(rest);
+            response.getWriter().write(json);
+        }
     }
 }
