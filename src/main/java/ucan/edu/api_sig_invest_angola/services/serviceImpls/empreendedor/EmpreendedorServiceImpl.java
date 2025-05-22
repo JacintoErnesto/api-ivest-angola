@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmpreendedorServiceImpl implements EmpreendedorService {
@@ -68,11 +70,15 @@ public class EmpreendedorServiceImpl implements EmpreendedorService {
                                             MultipartFile anexoBilhete, MultipartFile anexoNif,
                                             MultipartFile anexoCartaoMunicipe, MultipartFile anexoRegistroCriminal) {
         try {
+            log.info("EmpreendedorJson: " + empreendedorJson);
             //EmpreendedorRequestDTO empreendedorRequestDTO = UtilsJackson.jsonToObject(empreendedorJson, EmpreendedorRequestDTO.class);
             EmpreendedorRequestDTO empreendedorRequestDTO = validarJson(empreendedorJson);
+            log.info("Objecto empreendedorRequestDTO: " + empreendedorRequestDTO);
             Endereco endereco = new Endereco();
             EnderecoReturnDTO enderecoReturnDTO = null;
+            log.warn("Iniciar busca no banco pelo empreendedor");
             Empreendedor empreendedor = this.empreendedorRepository.findById(id).orElseThrow(() -> new PortalBusinessException("Empreendedor não encontrado"));
+            log.warn("Empreendedor encontrado com sucesso");
             if (isPreenchido(empreendedorRequestDTO.getNomeEmpreendedor()))
                 empreendedor.setNomeEmpreendedor(empreendedorRequestDTO.getNomeEmpreendedor());
             if (isPreenchido(empreendedorRequestDTO.getNifEmpreendedor()))
@@ -86,12 +92,20 @@ public class EmpreendedorServiceImpl implements EmpreendedorService {
             validarSeAnexosSaoPDF(anexoBilhete, anexoNif,anexoCartaoMunicipe,anexoRegistroCriminal);
             empreendedor.setTelefoneEmpreendedor(empreendedorRequestDTO.getTelefoneEmpreendedor());
             empreendedor.setEmailEmpreendedor(empreendedorRequestDTO.getEmailEmpreendedor());
+            log.warn("Todas as validações foram feitas com sucesso");
             enderecoReturnDTO = enderecoService.create(empreendedorRequestDTO.getEndereco());
+            log.warn("Endereco foi criado com sucesso");
+            log.warn("Endereco encontrado: " + enderecoReturnDTO);
+            log.warn("Setar o endereço no Empreendedor");
             empreendedor.setEndereco(enderecoService.mapParaEndereco(enderecoReturnDTO));
+            log.warn("Endereco setado com sucesso");
             salvarAnexosNoEmpreendedor(empreendedor, anexoBilhete, anexoNif,anexoCartaoMunicipe,anexoRegistroCriminal);
+            log.warn("Anexos salvos com sucesso");
             this.empreendedorRepository.save(empreendedor);
+            log.warn("Empreendedor atualizado com sucesso");
             mudarEstadoContaParaCompleto(empreendedor.getConta().getId());
-            return null;
+            log.warn("Estado da conta mudado para completo");
+            return mapearParaEmpreendeorRetornoDTO(empreendedor);
         } catch (PortalBusinessException e) {
             throw new PortalBusinessException(e.getMessage());
         } catch (IOException e) {
@@ -255,7 +269,6 @@ public class EmpreendedorServiceImpl implements EmpreendedorService {
             // Validação de campos obrigatórios no nível raiz
             if (!rootNode.hasNonNull("telefoneEmpreendedor") ||
                     !rootNode.hasNonNull("emailEmpreendedor") ||
-                    !rootNode.hasNonNull("nomeEmpreendedor") ||
                     !rootNode.hasNonNull("endereco")) {
                 throw new PortalBusinessException("JSON inválido: campos obrigatórios ausentes no nível principal.");
             }
@@ -264,7 +277,6 @@ public class EmpreendedorServiceImpl implements EmpreendedorService {
             JsonNode enderecoNode = rootNode.get("endereco");
             if (!enderecoNode.hasNonNull("nomeBairro") ||
                     !enderecoNode.hasNonNull("nomeRua") ||
-                    !enderecoNode.hasNonNull("numeroCasa") ||
                     !enderecoNode.hasNonNull("localidade")) {
                 throw new PortalBusinessException("JSON inválido: campos obrigatórios ausentes no objeto 'endereco'.");
             }
