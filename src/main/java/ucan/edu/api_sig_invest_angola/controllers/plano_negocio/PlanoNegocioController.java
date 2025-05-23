@@ -15,11 +15,5 @@ public class PlanoNegocioController extends Resource {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    // Add your service and methods here
-
-    // Example method
-    // @PostMapping("/create")
-    // public ResponseEntity<PlanoNegocioReturnDTO> createPlanoNegocio(@RequestBody PlanoNegocioRequestDTO request) {
-    //     return ResponseEntity.ok(planoNegocioService.create(request));
-    // }
+    private final Plano
 }

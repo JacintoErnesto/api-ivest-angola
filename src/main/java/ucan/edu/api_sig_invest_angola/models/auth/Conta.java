@@ -38,7 +38,8 @@ public class Conta  implements UserDetails {
     @NotNull(message = "Tipo de conta não pode ser nulo")
     @Enumerated(EnumType.STRING)
     private TipoConta tipoConta;
-
+    private String nomeAdministrador;
+    private String nifAdministrador;
     @Column(name = "perfil_completo")
     private boolean perfilCompleto;
 

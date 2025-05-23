@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ucan.edu.api_sig_invest_angola.dtos.empreendedor.EmpreendedorRequestDTO;
 import ucan.edu.api_sig_invest_angola.dtos.empreendedor.EmpreendedorRetornoDTO;
-import ucan.edu.api_sig_invest_angola.dtos.endereco.EnderecoRequestDTO;
 import ucan.edu.api_sig_invest_angola.dtos.endereco.EnderecoReturnDTO;
 import ucan.edu.api_sig_invest_angola.exceptions.PortalBusinessException;
 import ucan.edu.api_sig_invest_angola.models.auth.Conta;
@@ -22,7 +21,6 @@ import ucan.edu.api_sig_invest_angola.repositories.auth.AuthRepository;
 import ucan.edu.api_sig_invest_angola.repositories.empreendedor.EmpreendedorRepository;
 import ucan.edu.api_sig_invest_angola.services.empreendedor.EmpreendedorService;
 import ucan.edu.api_sig_invest_angola.services.endereco.EnderecoService;
-import ucan.edu.api_sig_invest_angola.utils.UtilsJackson;
 import ucan.edu.api_sig_invest_angola.utils.UtilsMessages.MessageUtils;
 
 import java.io.IOException;
@@ -270,7 +268,7 @@ public class EmpreendedorServiceImpl implements EmpreendedorService {
             if (!rootNode.hasNonNull("telefoneEmpreendedor") ||
                     !rootNode.hasNonNull("emailEmpreendedor") ||
                     !rootNode.hasNonNull("endereco")) {
-                throw new PortalBusinessException("JSON inválido: campos obrigatórios ausentes no nível principal.");
+                throw new PortalBusinessException("JSON inválido: campos {telefoneEmpreendedor, emailEmpreendedor, endereco} são obrigatórios.");
             }
 
             // Validação dos campos obrigatórios dentro de "endereco"

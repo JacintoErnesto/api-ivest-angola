@@ -23,11 +23,19 @@ public class AreaAtuacaoServiceImpl implements AreaAtuacaoService {
     public List<AreaAtuacaoReturnDTO> buscarTodos() {
         List<AreaAtuacao> listaAreaAtuacao = this.areaAtuacaoRepository.findAllByOrderByDesignacaoAsc();
         if (listaAreaAtuacao != null && !listaAreaAtuacao.isEmpty())
-            return listaAreaAtuacao.stream().map(areaAtuacao -> new AreaAtuacaoReturnDTO(
+            return listaAreaAtuacao.stream().map(this::mapearAreaAtuacaoDTO).toList();
+        return null;
+    }
+
+    @Override
+    public AreaAtuacaoReturnDTO mapearAreaAtuacaoDTO(AreaAtuacao areaAtuacao) {
+        if (areaAtuacao != null) {
+            return new AreaAtuacaoReturnDTO(
                     areaAtuacao.getId(),
                     areaAtuacao.getDesignacao(),
                     areaAtuacao.getDataRegistro()
-            )).toList();
+            );
+        }
         return null;
     }
 
@@ -35,13 +43,18 @@ public class AreaAtuacaoServiceImpl implements AreaAtuacaoService {
     public AreaAtuacaoReturnDTO buscarPorId(Long id) {
         if (id != null && id > 0) {
             Optional<AreaAtuacao> areaAtuacao = this.areaAtuacaoRepository.findById(id);
-            return areaAtuacao.map(atuacao -> new AreaAtuacaoReturnDTO(
-                    atuacao.getId(),
-                    atuacao.getDesignacao(),
-                    atuacao.getDataRegistro()
-            )).orElse(null);
+            return areaAtuacao.map(this::mapearAreaAtuacaoDTO).orElse(null);
         }
         return null;
+    }
+
+    @Override
+    public AreaAtuacao buscarModelPorId(Long id) {
+        if (id != null && id > 0) {
+            Optional<AreaAtuacao> areaAtuacao = this.areaAtuacaoRepository.findById(id);
+            return areaAtuacao.orElseThrow(()->new PortalBusinessException("Área de Atuação não encontrada para o ID informado :" + id));
+        }
+        throw new PortalBusinessException("ID inválido");
     }
 
     @Override
@@ -53,11 +66,7 @@ public class AreaAtuacaoServiceImpl implements AreaAtuacaoService {
             areaAtuacao.setDesignacao(areaAtuacaoRequestDTO.designacao());
             areaAtuacao.setDataRegistro(LocalDateTime.now());
             this.areaAtuacaoRepository.save(areaAtuacao);
-            return new AreaAtuacaoReturnDTO(
-                    areaAtuacao.getId(),
-                    areaAtuacao.getDesignacao(),
-                    areaAtuacao.getDataRegistro()
-            );
+            return mapearAreaAtuacaoDTO(areaAtuacao);
 
     }
 
@@ -76,11 +85,7 @@ public class AreaAtuacaoServiceImpl implements AreaAtuacaoService {
             validarAreaAtuacao(areaAtuacaoRequestDTO.designacao());
             areaAtuacao.setDesignacao(areaAtuacaoRequestDTO.designacao());
             this.areaAtuacaoRepository.save(areaAtuacao);
-            return new AreaAtuacaoReturnDTO(
-                    areaAtuacao.getId(),
-                    areaAtuacao.getDesignacao(),
-                    areaAtuacao.getDataRegistro()
-            );
+            return mapearAreaAtuacaoDTO(areaAtuacao);
         }
         return null;
     }

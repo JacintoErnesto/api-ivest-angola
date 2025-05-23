@@ -23,7 +23,6 @@ import java.util.function.Function;
 @Slf4j
 @Service
 public class JwtServiceImpl implements JwtService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JwtServiceImpl.class);
     @Value("${jwt.secret}")
     private String secretKeyString;
 

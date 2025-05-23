@@ -53,8 +53,10 @@ public class AreaAtuacaController extends Resource {
     public ResponseEntity<RestDataReturnDTO> buscarTodasLocalidades() {
         try {
             String msg = MessageUtils.getMessage("sucesso");
-            List<AreaAtuacaoReturnDTO> localidadeRequestDTO =this.areaAtuacaoService.buscarTodos();
-            return okRequest(localidadeRequestDTO,localidadeRequestDTO.size(), msg);
+            List<AreaAtuacaoReturnDTO> areaAtuacaoReturnDTOList =this.areaAtuacaoService.buscarTodos();
+            if (areaAtuacaoReturnDTOList != null)
+                return okRequestCaching(areaAtuacaoReturnDTOList);
+            return super.okRequestOneCaching(null, "sem.nada.no.retorno", null);
         } catch (PortalBusinessException e) {
             throw new PortalBusinessException(e.getMessage());
         }

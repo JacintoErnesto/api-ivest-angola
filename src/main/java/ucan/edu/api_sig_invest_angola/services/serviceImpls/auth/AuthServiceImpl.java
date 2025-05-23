@@ -48,14 +48,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             isUsernameExist(authRequestDTO.username());
 
-            Conta conta = new Conta();
-
-            conta.setUsername(authRequestDTO.username());
-            conta.setPassword(passwordEncoder.encode(authRequestDTO.password()));
-            conta.setTipoConta(validarTipoContaExiste(authRequestDTO.tipoConta()));
-            conta.setPerfilCompleto(false);
-            conta.setDataRegisto(LocalDateTime.now());
-
+            Conta conta = mapearParaConta(authRequestDTO);
             //Salvar a conta
             this.authRepository.save(conta);
             log.info("Salvou o objecto :" +conta);
@@ -63,13 +56,13 @@ public class AuthServiceImpl implements AuthService {
                 this.empreendedorService.create(new EmpreendedorRequestDTO(authRequestDTO.nome(), authRequestDTO.nif()), conta);
             }
             authContaReturnDTO = mapContaToAuthContaReturnDTO(conta);
-            Map<String, Object> claims = buildClaims(authContaReturnDTO);
+            Map<String, Object> claims = buildClaims(authContaReturnDTO, conta.getNifAdministrador(), conta.getNomeAdministrador());
             String jwt = jwtService.gerarToken(claims, conta);
 
-            AuthReturnDTO authrReturnDTO = new AuthReturnDTO();
-            authrReturnDTO.setData(jwt);
+            AuthReturnDTO authReturnDTO = new AuthReturnDTO();
+            authReturnDTO.setData(jwt);
 
-            return authrReturnDTO;
+            return authReturnDTO;
 
         } catch (PortalBusinessException e) {
             LOGGER.error("Erro de negócio ao criar conta", e);
@@ -82,14 +75,19 @@ public class AuthServiceImpl implements AuthService {
             throw new PortalBusinessException("Erro ao criar conta: " + e.getMessage());
         }
     }
+    private void salvarNomeNifAdmin(Conta conta, String nome, String nif){
+        conta.setNomeAdministrador(nome);
+        conta.setNifAdministrador(nif);
+    }
 
     @Override
     public AuthReturnDTO login(AutenticatioRequestDTO autenticatioRequest) {
         AuthContaReturnDTO authContaReturnDTO = null;
+        String username = autenticatioRequest.username().toLowerCase();
         try {
             authenticationManager.authenticate(
                     new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                            autenticatioRequest.username(),
+                            username,
                             autenticatioRequest.password()
                     )
             );
@@ -97,13 +95,13 @@ public class AuthServiceImpl implements AuthService {
             // Aqui você lança sua exceção personalizada
             throw new PortalBusinessException("Usuário ou senha incorretos");
         }
-        Conta conta = this.authRepository.findByUsername(autenticatioRequest.username()).orElse(null);
+        Conta conta = this.authRepository.findByUsername(username).orElse(null);
 
         if (conta == null) {
             throw new PortalBusinessException(MessageUtils.getMessage("auth.username.not.exist"));
         }
         authContaReturnDTO = mapContaToAuthContaReturnDTO(conta);
-        Map<String, Object> claims = buildClaims(authContaReturnDTO);
+        Map<String, Object> claims = buildClaims(authContaReturnDTO, conta.getNifAdministrador(), conta.getNomeAdministrador());
 
         String jwt = jwtService.gerarToken(claims, conta);
         AuthReturnDTO authrReturnDTO = new AuthReturnDTO();
@@ -112,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
         return authrReturnDTO;
     }
 
-    private Map<String, Object> buildClaims(AuthContaReturnDTO dto) {
+    private Map<String, Object> buildClaims(AuthContaReturnDTO dto, String nifAdmin, String nomeAdmin) {
         Map<String, Object> contaMap = new HashMap<>();
         EmpreendedorRetornoDTO empreendedor = null;
         String nome = null;
@@ -121,7 +119,11 @@ public class AuthServiceImpl implements AuthService {
             empreendedor = this.empreendedorService.buscarEmpreendedorPorConta(dto.id());
             nome = empreendedor.nomeEmpreendedor();
             nif = empreendedor.nifEmpreendedor();
-            System.out.println();
+
+        }
+        if (dto.tipoConta().equals("ADMINISTRADOR")){
+            nome = nomeAdmin;
+            nif = nifAdmin;
         }
 
         contaMap.put("id", dto.id());
@@ -149,7 +151,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void isUsernameExist(String username) {
-        if (this.buscarContaPorUsername(username) != null) {
+        if (this.buscarContaPorUsername(username.toLowerCase()) != null) {
             throw new PortalBusinessException(MessageUtils.getMessage("auth.username.exist"));
         }
     }
@@ -198,7 +200,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Page<AuthContaReturnDTO> buscarContasPorTipoConta(String tipoConta, PageRequest pageable) {
-        TipoConta tipo = TipoConta.forDescricao(tipoConta);
+        TipoConta tipo = TipoConta.fromDescricao(tipoConta);
         if (tipo == null) {
             throw new PortalBusinessException("Tipo de conta inválido: " + tipoConta);
         }
@@ -213,9 +215,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private TipoConta validarTipoContaExiste(String tipoConta){
-        TipoConta tipoContaExiste = TipoConta.forDescricao(String.valueOf(tipoConta));
+        TipoConta tipoContaExiste = TipoConta.fromDescricao(String.valueOf(tipoConta));
         if (tipoContaExiste == null)
             throw new PortalBusinessException("Tipo inválida");
         return tipoContaExiste;
+    }
+
+    private Conta mapearParaConta(AuthContaRequestDTO authRequestDTO){
+        if (authRequestDTO == null)
+            return null;
+        Conta conta = new Conta();
+        conta.setUsername(authRequestDTO.username().toLowerCase());
+        conta.setPassword(passwordEncoder.encode(authRequestDTO.password()));
+        conta.setTipoConta(validarTipoContaExiste(authRequestDTO.tipoConta()));
+        conta.setPerfilCompleto(false);
+        if (conta.getTipoConta().name().equals("ADMINISTRADOR")){
+            salvarNomeNifAdmin(conta, authRequestDTO.nome(), authRequestDTO.nif());
+            conta.setPerfilCompleto(true);
+        }
+        conta.setDataRegisto(LocalDateTime.now());
+        return conta;
     }
 }

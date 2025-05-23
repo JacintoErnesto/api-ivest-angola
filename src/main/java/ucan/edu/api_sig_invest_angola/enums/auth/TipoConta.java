@@ -3,7 +3,6 @@ package ucan.edu.api_sig_invest_angola.enums.auth;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
-import ucan.edu.api_sig_invest_angola.exceptions.PortalBusinessException;
 
 @Getter
 public enum TipoConta {
@@ -21,7 +20,7 @@ public enum TipoConta {
     public String toValue() {
         return name();
     }
-    public static TipoConta forDescricao(String descricao) {
+    public static TipoConta fromDescricao(String descricao) {
         for (TipoConta tipo : TipoConta.values()) {
             if (tipo.getDescricaoTipoConta().equalsIgnoreCase(descricao)) {
                 return tipo;
@@ -32,7 +31,7 @@ public enum TipoConta {
 
     @JsonCreator
     public static TipoConta forValue(String v) {
-        return TipoConta.forDescricao(v);
+        return TipoConta.fromDescricao(v);
     }
 
 }

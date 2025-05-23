@@ -28,7 +28,9 @@ public record PlanoNegocioRequestDTO(
         String desafiosOuRiscos,
         @NotBlank(message = "O campo área de atuação não deve estar vazio")
         Long areaDeAtuacaoId,
-        @NotNull(message = "O campo localidade não deve estar vazio")
+        @NotBlank(message = "O campo empreendedor não deve estar vazio")
+        Long empreendedorId,
+        @NotBlank(message = "O campo localidade não deve estar vazio")
         String localidadeId
         ) {
 }

@@ -75,15 +75,15 @@ public class Resource extends RuntimeException {
     }
 
     //RETORNO ADAPTADO PARA SUPORTAR E LEVAR AO RADIS O RECURSO CONSUMIDO.
-    public RestDataReturnDTO okRequestCaching(Object object) {
+    public ResponseEntity<RestDataReturnDTO> okRequestCaching(Object object) {
         String msg = MessageUtils.getMessage("sucesso");
 
         if(object!= null) {
             RestDataReturnDTO rest = new RestDataReturnDTO(object, ResponseCode.SUCESSO.getDescricao(), msg);
-            return rest;
+            return new ResponseEntity<>(rest, HttpStatus.OK);
         }
         RestDataReturnDTO rest = new RestDataReturnDTO(ResponseCode.NENHUM_RESGISTRO.getDescricao(), MessageUtils.getMessage("sem.nada.no.retorno"));
-        return rest;
+        return new ResponseEntity<>(rest, HttpStatus.OK);
     }
 
     public ResponseEntity<RestDataReturnDTO> okRequestOneMensage(Object object, String message, Object... params) {
